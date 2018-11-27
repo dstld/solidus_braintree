@@ -64,6 +64,7 @@ module Solidus
     def create_profile(payment)
       source = payment.source
 
+      # binding.pry
       return if source.gateway_customer_profile_id.present? || payment.payment_method_nonce.nil?
 
       user = payment.order.user
