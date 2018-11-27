@@ -62,6 +62,7 @@ module Solidus
     end
 
     def create_profile(payment)
+      # binding.pry
       source = payment.source
 
       return if source.gateway_customer_profile_id.present? || payment.payment_method_nonce.nil?
@@ -74,6 +75,7 @@ module Solidus
         first_name: source.first_name,
         last_name: source.last_name,
         email: email,
+        id: user.id.to_s,
         credit_card: {
           cardholder_name: source.name,
           billing_address: map_address(address),
@@ -85,7 +87,11 @@ module Solidus
         device_data: payment.order.braintree_device_data
       }
 
-      result = braintree_gateway.customer.create(params)
+      if braintree_gateway.customer.find(params[:id])
+        result = braintree_gateway.customer.update(params[:id], :payment_method_nonce => payment.payment_method_nonce)
+      else
+        result = braintree_gateway.customer.create(params)
+      end
 
       if result.success?
         card = result.customer.payment_methods.last
