@@ -88,9 +88,10 @@ module Solidus
         device_data: payment.order.braintree_device_data
       }
 
-      if braintree_gateway.customer.find(params[:id])
+      begin
+        braintree_gateway.customer.find(params[:id])
         result = braintree_gateway.customer.update(params[:id], :payment_method_nonce => payment.payment_method_nonce)
-      else
+      rescue Braintree::NotFoundError
         result = braintree_gateway.customer.create(params)
       end
 
