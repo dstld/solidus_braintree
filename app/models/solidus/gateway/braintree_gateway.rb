@@ -65,6 +65,7 @@ module Solidus
       # binding.pry
       source = payment.source
 
+      # binding.pry
       return if source.gateway_customer_profile_id.present? || payment.payment_method_nonce.nil?
 
       user = payment.order.user
@@ -86,10 +87,16 @@ module Solidus
         },
         device_data: payment.order.braintree_device_data
       }
+<<<<<<< HEAD
       # binding.pry
       if braintree_gateway.customer.find(params[:id])
+=======
+
+      begin
+        braintree_gateway.customer.find(params[:id])
+>>>>>>> 570cbde81fee7552747683c73edddf2be525babe
         result = braintree_gateway.customer.update(params[:id], :payment_method_nonce => payment.payment_method_nonce)
-      else
+      rescue Braintree::NotFoundError
         result = braintree_gateway.customer.create(params)
       end
       if result.success?
