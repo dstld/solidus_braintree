@@ -87,18 +87,14 @@ module Solidus
         },
         device_data: payment.order.braintree_device_data
       }
-<<<<<<< HEAD
-      # binding.pry
-      if braintree_gateway.customer.find(params[:id])
-=======
 
       begin
         braintree_gateway.customer.find(params[:id])
->>>>>>> 570cbde81fee7552747683c73edddf2be525babe
         result = braintree_gateway.customer.update(params[:id], :payment_method_nonce => payment.payment_method_nonce)
       rescue Braintree::NotFoundError
         result = braintree_gateway.customer.create(params)
       end
+      
       if result.success?
         card = result.customer.payment_methods.find { |pm|
           source[:last_digits] == pm.last_4 && source[:cc_type] == CARD_TYPE_MAPPING[pm.card_type]
