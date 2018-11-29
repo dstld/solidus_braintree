@@ -86,15 +86,16 @@ module Solidus
         },
         device_data: payment.order.braintree_device_data
       }
-
+      # binding.pry
       if braintree_gateway.customer.find(params[:id])
         result = braintree_gateway.customer.update(params[:id], :payment_method_nonce => payment.payment_method_nonce)
       else
         result = braintree_gateway.customer.create(params)
       end
-
       if result.success?
-        card = result.customer.payment_methods.last
+        card = result.customer.payment_methods.find { |pm|
+          source[:last_digits] == pm.last_4 && source[:cc_type] == CARD_TYPE_MAPPING[pm.card_type]
+        }
         source.tap do |solidus_cc|
           if card.is_a?(::Braintree::PayPalAccount)
             solidus_cc.cc_type = 'paypal'
