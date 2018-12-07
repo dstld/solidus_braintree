@@ -96,7 +96,15 @@ module Solidus
       end
 
       if result.success?
-        card = result.customer.payment_methods.last
+        card = result.customer.payment_methods.sort_by {|pm| pm.created_at}
+          .reverse
+          .find {|pm|
+            if source.cc_type != 'paypal'
+              !pm.is_a?(::Braintree::PayPalAccount)
+            else
+              true
+            end
+          }
         source.tap do |solidus_cc|
           if card.is_a?(::Braintree::PayPalAccount)
             solidus_cc.cc_type = 'paypal'
