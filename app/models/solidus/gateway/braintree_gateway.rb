@@ -26,7 +26,7 @@ module Solidus
       'MasterCard' => 'master',
       'Solo' => 'solo',
       'Switch' => 'switch',
-      'Visa' => 'visa',
+      'Visa' => 'visa'
     }
 
     if SolidusSupport.solidus_gem_version < Gem::Version.new('2.3.x')
@@ -96,13 +96,14 @@ module Solidus
       end
 
       if result.success?
-        card = result.customer.payment_methods.sort_by {|pm| pm.created_at}
-          .reverse
-          .find {|pm|
-            if source.cc_type != 'paypal'
-              !pm.is_a?(::Braintree::PayPalAccount)
+        # edited this part
+        card = result.customer.payment_methods
+          .find { |pm|
+            if source.cc_type == 'paypal'
+              pm.is_a?(::Braintree::PayPalAccount) && pm.email == source.data['email']
             else
-              true
+              pm.is_a?(::Braintree::CreditCard) &&
+                source[:last_digits] == pm.last_4 && source[:cc_type] == CARD_TYPE_MAPPING[pm.card_type]
             end
           }
         source.tap do |solidus_cc|
