@@ -1,3 +1,4 @@
+# this is the gem version of the controller
 class Spree::Api::BraintreeClientTokenController < Spree::Api::BaseController
   skip_before_action :authenticate_user
 
