@@ -45,7 +45,7 @@ module Solidus
         merchant_id: preferred_merchant_id,
         public_key: preferred_public_key,
         private_key: preferred_private_key,
-        logger: ::Braintree::Configuration.logger.clone,
+        logger: ::Braintree::Configuration.logger.clone
       }
     end
 
@@ -83,6 +83,8 @@ module Solidus
           payment_method_nonce: payment.payment_method_nonce,
           options: {
             verify_card: true,
+            # added this
+            verification_merchant_account_id: ENV['BRAINTREE_MERCHANT_ACCOUNT_ID']
           },
         },
         device_data: payment.order.braintree_device_data
