@@ -72,11 +72,13 @@ module Solidus
       email = user ? user.email : payment.order.email
       address = (payment.source.address || payment.order.bill_address).try(:active_merchant_hash)
 
+      id = generate_customer_id(user)
+
       params = {
         first_name: source.first_name,
         last_name: source.last_name,
         email: email,
-        id: user.id.to_s,
+        id: id,
         credit_card: {
           cardholder_name: source.name,
           billing_address: map_address(address),
@@ -212,6 +214,13 @@ module Solidus
     end
 
     private
+
+    def generate_customer_id(user)
+      Digest::MD5.hexdigest(
+        user.name.parameterize + '-' + user.email
+        )
+    end
+
     def message_from_result(result)
       if result.success?
         "OK"
