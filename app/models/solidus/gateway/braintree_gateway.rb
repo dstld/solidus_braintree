@@ -92,7 +92,9 @@ module Solidus
 
       begin
         braintree_gateway.customer.find(params[:id])
-        result = braintree_gateway.customer.update(params[:id], :payment_method_nonce => payment.payment_method_nonce)
+        result = braintree_gateway.customer.update(params[:id], {
+          :payment_method_nonce => payment.payment_method_nonce
+        })
       rescue Braintree::NotFoundError
         result = braintree_gateway.customer.create(params)
       end
@@ -121,6 +123,7 @@ module Solidus
             solidus_cc.month = card.expiration_month
             solidus_cc.year = card.expiration_year
             solidus_cc.last_digits = card.last_4
+            solidus_cc.zipcode = address[:zip]
           end
           solidus_cc.payment_method = self
           solidus_cc.gateway_customer_profile_id = result.customer.id
