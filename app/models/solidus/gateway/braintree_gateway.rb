@@ -62,17 +62,15 @@ module Solidus
     end
 
     def create_profile(payment)
-      # binding.pry
       source = payment.source
 
-      # binding.pry
       return if source.gateway_customer_profile_id.present? || payment.payment_method_nonce.nil?
 
       user = payment.order.user
       email = user ? user.email : payment.order.email
       address = (payment.source.address || payment.order.bill_address).try(:active_merchant_hash)
 
-      id = generate_customer_id(user)
+      id = user.braintree_customer_id
 
       params = {
         first_name: source.first_name,
@@ -214,12 +212,6 @@ module Solidus
     end
 
     private
-
-    def generate_customer_id(user)
-      Digest::MD5.hexdigest(
-        user.name.parameterize + '-' + user.email
-        )
-    end
 
     def message_from_result(result)
       if result.success?
