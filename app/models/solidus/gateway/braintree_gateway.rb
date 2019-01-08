@@ -1,5 +1,17 @@
 require "braintree"
 
+class CreateCustomerMock
+  def initialize(customer)
+    @customer = customer
+  end
+  def success?
+    true
+  end
+  def customer
+    @customer
+  end
+end
+
 module Solidus
   gateway_superclass =
     if SolidusSupport.solidus_gem_version < Gem::Version.new('2.3.x')
@@ -73,17 +85,17 @@ module Solidus
       id = user.braintree_customer_id
 
       params = {
+        id: id,
         first_name: source.first_name,
         last_name: source.last_name,
         email: email,
-        id: id,
+        payment_method_nonce: payment.payment_method_nonce,
         credit_card: {
-          cardholder_name: source.name,
-          billing_address: map_address(address),
-          payment_method_nonce: payment.payment_method_nonce,
+          # cardholder_name: source.name,
+          billing_address_id: map_address(address),
+          # payment_method_nonce: payment.payment_method_nonce,
           options: {
             verify_card: true,
-            # added this
             verification_merchant_account_id: ENV['BRAINTREE_MERCHANT_ACCOUNT_ID']
           },
         },
@@ -91,10 +103,24 @@ module Solidus
       }
 
       begin
-        braintree_gateway.customer.find(params[:id])
-        result = braintree_gateway.customer.update(params[:id], {
-          :payment_method_nonce => payment.payment_method_nonce
-        })
+        customer = braintree_gateway.customer.find(params[:id])
+        result = CreateCustomerMock.new(customer)
+
+        begin
+          found_nonce = braintree_gateway.payment_method_nonce.find(payment.payment_method_nonce)
+        rescue Braintree::NotFoundError
+          braintree_gateway.payment_method.create(
+            params[:credit_card].merge({
+              payment_method_nonce: payment.payment_method_nonce,
+              customer_id: params[:id],
+              device_data: payment.order.braintree_device_data
+            })
+          )
+        end
+        # result = braintree_gateway.customer.update(params[:id], {
+        #   :payment_method_nonce => payment.payment_method_nonce
+        # })
+
       rescue Braintree::NotFoundError
         result = braintree_gateway.customer.create(params)
       end
