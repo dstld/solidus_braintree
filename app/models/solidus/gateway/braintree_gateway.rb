@@ -92,7 +92,7 @@ module Solidus
         payment_method_nonce: payment.payment_method_nonce,
         credit_card: {
           # cardholder_name: source.name,
-          billing_address_id: map_address(address),
+          billing_address: map_address(address),
           # payment_method_nonce: payment.payment_method_nonce,
           options: {
             verify_card: true,
