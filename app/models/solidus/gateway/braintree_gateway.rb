@@ -102,6 +102,7 @@ module Solidus
         device_data: payment.order.braintree_device_data
       }
 
+      card = nil
       begin
         customer = braintree_gateway.customer.find(params[:id])
         result = CreateCustomerMock.new(customer)
@@ -109,7 +110,7 @@ module Solidus
         begin
           found_nonce = braintree_gateway.payment_method_nonce.find(payment.payment_method_nonce)
         rescue Braintree::NotFoundError
-          braintree_gateway.payment_method.create(
+          card = braintree_gateway.payment_method.create(
             params[:credit_card].merge({
               payment_method_nonce: payment.payment_method_nonce,
               customer_id: params[:id],
@@ -127,7 +128,7 @@ module Solidus
 
       if result.success?
         # edited this part
-        card = result.customer.payment_methods
+        card ||= result.customer.payment_methods
           .find { |pm|
             if source.cc_type == 'paypal'
               pm.is_a?(::Braintree::PayPalAccount) && pm.email == source.data['email']
